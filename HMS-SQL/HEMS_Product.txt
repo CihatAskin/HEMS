@@ -1,0 +1,300 @@
+USE [HEMS]
+GO
+
+/****** Object:  Table [dbo].[Product]    Script Date: 26.06.2022 14:23:15 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Product](
+	[Product_Code] [varchar](50) NOT NULL,
+	[Seq_Id] [int] IDENTITY(1,1) NOT NULL,
+	[Product_Category_Code] [varchar](50) NOT NULL,
+	[Product_Type_Code] [varchar](50) NOT NULL,
+	[Product_Name] [varchar](50) NOT NULL,
+	[Product_Description] [varchar](50) NULL,
+	[Status] [varchar](50) NOT NULL,
+	[Create_Date] [datetime] NOT NULL,
+	[Update_Date] [datetime] NULL,
+	[Is_Deleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Product] PRIMARY KEY CLUSTERED 
+(
+	[Product_Code] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Product]  WITH CHECK ADD  CONSTRAINT [FK_Product_Product_Category_Code] FOREIGN KEY([Product_Category_Code])
+REFERENCES [dbo].[Product_Category] ([Product_Category_Code])
+GO
+
+ALTER TABLE [dbo].[Product] CHECK CONSTRAINT [FK_Product_Product_Category_Code]
+GO
+
+ALTER TABLE [dbo].[Product]  WITH CHECK ADD  CONSTRAINT [FK_Product_Product_Type_Code] FOREIGN KEY([Product_Type_Code])
+REFERENCES [dbo].[Product_Type] ([Product_Type_Code])
+GO
+
+ALTER TABLE [dbo].[Product] CHECK CONSTRAINT [FK_Product_Product_Type_Code]
+GO
+
+
+
+
+Revision => 
+Select Top 0 * into Product_Revision from Product
+
+********************************************************************
+create or alter  procedure [dbo].[sp_product_insert]
+
+@CategoryCode  varchar(50),
+@ProductTypeCode  varchar(50),
+@Code  varchar(50),
+@Name  varchar(50),
+@Description  varchar(50),
+@Status  varchar(50),
+@CreatedAt datetime,
+@Id int output
+as
+begin
+
+INSERT INTO [dbo].[Product]
+           ([Product_Category_Code]
+	   ,[Product_Type_Code]
+	   ,[Product_Code]
+           ,[Product_Name]
+           ,[Product_Description]
+           ,[Status]
+           ,[Create_Date]
+           ,[Is_Deleted])
+     VALUES
+           (@CategoryCode
+	   ,@ProductTypeCode
+	   ,@Code 
+           ,@Name
+           ,@Description
+           ,@Status 
+           ,@CreatedAt 
+           ,0   );
+set @Id =SCOPE_IDENTITY();
+return @Id;
+end
+
+
+*******************************************************************
+create or alter procedure sp_product_get_all
+
+as
+begin
+
+SELECT 
+       [Product_Category_Code] as CategoryCode
+      ,[Product_Type_Code] as ProductTypeCode
+      ,[Product_Code] as Code
+      ,[Seq_Id] as Id
+      ,[Product_Name] as Name
+      ,[Product_Description] as Description
+      ,[Status] as Status
+      ,[Create_Date] as CreatedAt
+      ,[Update_Date] as UpdatedAt
+      ,[Is_Deleted] as IsDeleted
+  FROM [dbo].[Product] with (nolock)
+WHERE Is_Deleted =0
+
+end
+
+*******************************************************************
+create   procedure [dbo].[sp_product_get_by_id]
+
+@Id int
+as
+begin
+
+SELECT [Product_Category_Code] as CategoryCode
+      ,[Product_Type_Code] as ProductTypeCode
+      ,[Product_Code] as Code
+      ,[Seq_Id] as Id
+      ,[Product_Name] as Name
+      ,[Product_Description] as Description
+      ,[Status] as Status
+      ,[Create_Date] as CreatedAt
+      ,[Update_Date] as UpdatedAt
+      ,[Is_Deleted] as IsDeleted
+  FROM [dbo].[Product] with (nolock)
+  WHERE [Seq_Id] =@Id
+end
+
+******************************************************************
+create or alter procedure sp_product_get_by_type
+
+@ProductTypeCode varchar(50)
+as
+begin
+
+SELECT  [Product_Category_Code] as CategoryCode
+      ,[Product_Type_Code] as ProductTypeCode
+      ,[Product_Code] as Code
+      ,[Seq_Id] as Id
+      ,[Product_Name] as Name
+      ,[Product_Description] as Description
+      ,[Status] as Status
+      ,[Create_Date] as CreatedAt
+      ,[Update_Date] as UpdatedAt
+      ,[Is_Deleted] as IsDeleted
+  FROM [dbo].[Product] with (nolock)
+  WHERE [Product_Type_Code] =@ProductTypeCode and Is_Deleted=0;
+
+end
+
+******************************************************************
+create or alter procedure sp_product_update
+
+@Id int,
+@Name  varchar(50),
+@Description  varchar(50),
+@Status  varchar(50),
+@UpdatedAt datetime
+
+as
+begin
+
+insert into Product_Revision SELECT 
+       
+       [Product_Code] 
+      ,[Product_Category_Code]	  
+      ,[Product_Type_Code]
+      ,[Product_Name]
+      ,[Product_Description]
+      ,[Status]
+      ,[Create_Date]
+      ,[Update_Date]
+      ,[Is_Deleted]
+  FROM [dbo].[Product] where Seq_Id=@Id
+
+UPDATE [dbo].[Product]
+   SET [Product_Name] = @Name
+      ,[Product_Description] = @Description
+      ,[Status] = @Status 
+      ,[Update_Date] = @UpdatedAt
+      ,[Is_Deleted]=0
+ WHERE Seq_Id=@Id 
+end
+**********************************************************************
+create or alter  procedure [dbo].[sp_product_insert_or_revive]
+
+@CategoryCode  varchar(50),
+@ProductTypeCode  varchar(50),
+@Code  varchar(50),
+@Name  varchar(50),
+@Description  varchar(50),
+@Status  varchar(50),
+@CreatedAt datetime,
+@Id int output
+as
+begin
+
+set @Id=( Select Seq_Id from [Product] where Product_Code =@Code );
+
+IF @Id is not null 
+BEGIN
+insert into Product_Revision SELECT 
+       
+       [Product_Code] 
+      ,[Product_Category_Code]	  
+      ,[Product_Type_Code]
+      ,[Product_Name]
+      ,[Product_Description]
+      ,[Status]
+      ,[Create_Date]
+      ,[Update_Date]
+      ,[Is_Deleted]
+  FROM [dbo].[Product] where Seq_Id=@Id;
+
+UPDATE [dbo].[Product]
+   SET 
+       [Product_Category_Code]=@CategoryCode
+      ,[Product_Type_Code]=@ProductTypeCode
+      ,[Product_Name] = @Name
+      ,[Product_Description] = @Description
+      ,[Status] = @Status 
+      ,[Update_Date] = @CreatedAt
+      ,[Is_Deleted]=0
+ WHERE Seq_Id=@Id ;
+ END
+ELSE 
+BEGIN  
+exec sp_product_insert @CategoryCode,@ProductTypeCode,@Code,@Name ,@Description,@Status ,@CreatedAt,@Id output;
+END 
+
+return @Id;
+end
+
+
+*******************************************************************
+
+create or alter procedure sp_product_delete
+
+@Code varchar(50),
+@UpdatedAt datetime
+as
+begin
+
+insert into Product_Revision SELECT 
+       
+       [Product_Code] 
+      ,[Product_Category_Code]
+      ,[Product_Type_Code]
+      ,[Product_Name]
+      ,[Product_Description]
+      ,[Status]
+      ,[Create_Date]
+      ,[Update_Date]
+      ,[Is_Deleted]
+  FROM [dbo].[Product] where [Product_Code] =@Code
+
+UPDATE [dbo].[Product]
+   SET [Is_Deleted] = 1
+      ,[Update_Date] = @UpdatedAt
+ WHERE [Product_Code] =@Code 
+end
+
+*********************************************************************
+create or alter procedure sp_product_is_exist
+
+@Code varchar(50)
+as
+begin
+
+SELECT 1 FROM Product WHERE Product_Code = @Code AND Is_Deleted=0;
+
+end
+
+************
+TEST
+****************
+
+sp_product_get_by_id 7
+
+sp_product_get_all
+
+DECLARE
+@Date datetime =GETDATE(),
+@Id int;
+exec sp_product_insert '222','lu','lo','ddd','ddd',@Date,@Id output;
+select @Id;
+
+select * from [Product]
+
+select *  from [Product_Revision]
+
+DECLARE
+@Date datetime =GETDATE();
+exec sp_product_update 7,'lc','lv','lb',@Date;
+
+DECLARE
+@Date datetime =GETDATE();
+exec sp_product_delete 7,@Date;
+
+exec sp_product_is_exist 'jjj'
