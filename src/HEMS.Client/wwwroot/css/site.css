@@ -21,15 +21,16 @@ body {
     width: 25rem;
 }
 
-    .dashboard-card:hover {
+    .dashboard-card .card-header:hover {
         cursor: pointer;
+        background-color: beige;
     }
 
-    .dashboard-card:focus {
-        color: #fff;
-        background-color: #bb2d3b;
-        border-color: #b02a37;
-        box-shadow: 0 0 0 0.25rem rgb(225 83 97 / 50%);
+    .dashboard-card.active .card-header {
+        background-color: bisque;
+    }
+    .dashboard-card.active .card{
+        background-color: beige;
     }
 
 .header {
