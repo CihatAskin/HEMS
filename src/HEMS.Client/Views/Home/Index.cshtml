@@ -1,0 +1,50 @@
+﻿@model HEMS.Client.Models.Home.DashboardReadListModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<span id="error" class="text-danger field-validation-error" data-valmsg-for="ALL" data-valmsg-replace="true"></span>
+
+<div class="canvas">
+    <p>
+        <h4 class="header">Categories</h4>
+        <a class="btn btn-primary btn-active-light-primary btn-sm ml-2 " asp-controller="Category" asp-action="Create">Add Category</a>
+    </p>
+
+    <hr />
+    <div class="row row-cols-auto category">
+
+        @foreach (var item in Model.Categories)
+        {
+            <partial name="Components/_Category" model="@item" />
+        }
+    </div>
+    <p>
+        <h4 class="header">Product Types</h4>
+        <a class="btn btn-primary btn-active-light-primary btn-sm ml-2 " asp-controller="ProductType" asp-action="Create">Add Type</a>
+    </p>
+
+    <hr />
+    <div class="row row-cols-auto product-type">
+
+        @foreach (var item in Model.ProductTypes)
+        {
+            <partial name="Components/_ProductType" model="@item" />
+        }
+    </div>
+     <p>
+        <h4 class="header">Products</h4>
+        <a class="btn btn-primary btn-active-light-primary btn-sm ml-2 " asp-controller="Product" asp-action="Create">Add Product</a>
+    </p>
+    <hr />
+    <div class="row row-cols-auto product" >
+
+        @foreach (var item in Model.Products)
+        {
+            <partial name="Components/_Product" model="@item" />
+        }
+    </div>
+</div>
+
+<script src="~/js/delete-action.js" asp-append-version="true"></script>
+<script src="~/js/card-action.js" asp-append-version="true"></script>

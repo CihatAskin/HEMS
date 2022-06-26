@@ -1,0 +1,95 @@
+﻿@model HEMS.Client.Models.Product.ProductCreateModel
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>New Product</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            @if (Model != null)
+            {
+                for (var i = 0; i < Model.CategoryCodes.Count; i++)
+                {
+                    @Html.HiddenFor(m =>  Model.CategoryCodes[i])
+                }
+            }
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CategoryCode" class="control-label">Category Code</label>
+                <select asp-for="CategoryCode" class="form-select">
+                    <option value=""></option>
+                    @foreach (var item in Model.CategoryCodes)
+                    {
+                        <option value=@item>@item</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductTypeCode" class="control-label"></label>
+                <select asp-for="ProductTypeCode" class="form-select">               
+                </select>
+                <span asp-validation-for="ProductTypeCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Code" class="control-label"></label>
+                <input asp-for="Code" class="form-control" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="control-label"></label>
+                <input asp-for="Status" class="form-control" />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <hr />
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
+}
+<script type="text/javascript">
+    let $category = document.getElementById('CategoryCode');
+    let $productType = document.getElementById('ProductTypeCode');
+
+    $category.addEventListener('change',(e)=>{
+        let elem = e.target;
+
+     doGet(`/ProductType/GetByCategory/${elem.value}`, (req) => {
+            var roles = JSON.parse(req.responseText).options;
+            console.log(roles);
+             $productType.innerHTML='';
+            for (var i = 0; i < roles.length; i++) {
+                let role = roles[i];
+                let option = createElement('option', { 'value': role.value }, role.text);
+                $productType.appendChild(option);
+            }
+
+        });
+});
+</script>

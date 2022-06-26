@@ -1,0 +1,19 @@
+﻿@model ProductTypeReadModel
+<div class="col dashboard-card" data-code=@Model.Code data-category=@Model.CategoryCode>
+    <div class="card">
+        <div class="card-header">
+            @Model.Code
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <p class="card-text">@Model.Description</p>
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">@Model.Status</li>
+        </ul>
+        <div class="card-body">
+             <a href="@Html.Raw("/ProductType/Edit/"+Model.Id)" class="btn btn-warning btn-active-light-primary me-2 edit-link">Edit</a>
+            <button type="button" data-link="@Html.Raw("/ProductType/Delete/"+Model.Code)" class="btn btn-danger btn-active-light-primary me-2 delete-link">Delete</button>
+        </div>
+    </div>
+</div>
